@@ -58,14 +58,14 @@ GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
 GLvoid Keyboard(unsigned char key, int x, int y);
 void Mouse(int button, int state, int x, int y);
+int rect_find_top(GLfloat* input_pos);
 void clamp_pos(GLfloat* input_pos);
 void draw_rect(int index);
-void Motion(int x, int y);
-int rect_find_overlap();
+
 
 std::vector<struct rect> rectangles;
-struct rect eraser_rect;
-
+struct rect divide_rect;
+int divide_rect_index = -1;
 
 void main(int argc, char** argv)
 {
@@ -87,7 +87,6 @@ void main(int argc, char** argv)
 	glutReshapeFunc(Reshape);
 	glutKeyboardFunc(Keyboard);
 	glutMouseFunc(Mouse);
-	glutMotionFunc(Motion);
 	init();
 	glutMainLoop();
 }
@@ -115,63 +114,24 @@ GLvoid drawScene()
 			draw_rect(i);
 		}
 	}
-
-	if (erasing == 1) {
-		glColor3f(eraser_rect.r, eraser_rect.g, eraser_rect.b);
-		glRectf(eraser_rect.x1, eraser_rect.y1, eraser_rect.x2, eraser_rect.y2);
-	}
 	glutSwapBuffers();
 }
 
 void Mouse(int button, int state, int x, int y)
 {
+
 	GLfloat input_pos[2] = { x, y };
 	clamp_pos(input_pos);
 	if (state == GLUT_DOWN) {
-		erasing = 1;
-		struct rect tmp;
-		tmp.x1 = input_pos[0] - RECTINITSIZE;
-		tmp.x2 = input_pos[0] + RECTINITSIZE;
-		tmp.y1 = input_pos[1] - RECTINITSIZE;
-		tmp.y2 = input_pos[1] + RECTINITSIZE;
-		eraser_rect = tmp;
+		divide_rect_index = rect_find_top(input_pos);
+		divide_rect = rectangles[divide_rect_index];
+		std::cout << divide_rect_index << std::endl;
 		glutPostRedisplay();
 	}
 	else {
 		erasing = 0;
 	}
 
-}
-
-void Motion(int x, int y)
-{
-	if (erasing != 1) return;
-	GLfloat rect_width = eraser_rect.x2 - eraser_rect.x1;
-	GLfloat rect_height = eraser_rect.y2 - eraser_rect.y1;
-	GLfloat input_pos[2] = { x, y };
-	clamp_pos(input_pos);
-	eraser_rect.x1 = input_pos[0] - rect_width / 2;
-	eraser_rect.x2 = input_pos[0] + rect_width / 2;
-	eraser_rect.y1 = input_pos[1] - rect_height / 2;
-	eraser_rect.y2 = input_pos[1] + rect_height / 2;
-
-	int overlap = rect_find_overlap();
-	if (overlap != -1) {
-		if (overlap == rectcount) {
-			rectangles.pop_back();
-
-		}
-		else {
-			rectangles.erase(rectangles.begin() + overlap);
-		}
-		rectcount--;
-
-		eraser_rect.x1 -= RECTINITSIZE / 5;
-		eraser_rect.x2 += RECTINITSIZE / 5;
-		eraser_rect.y1 -= RECTINITSIZE / 5;
-		eraser_rect.y2 += RECTINITSIZE / 5;
-	}
-	glutPostRedisplay();
 }
 
 void clamp_pos(GLfloat* input_pos) {
@@ -206,22 +166,17 @@ void draw_rect(int index) {
 	glRectf(rectangles[index].x1, rectangles[index].y1, rectangles[index].x2, rectangles[index].y2);
 }
 
-int rect_find_overlap() {
 
+int rect_find_top(GLfloat* input_pos) {
 	if (rectangles.empty()) return -1;
 	for (int i = rectangles.size() - 1; i >= 0; i--) {
-		if ((rectangles[i].x1 <= eraser_rect.x1 && eraser_rect.x1 <= rectangles[i].x2) ||
-			(rectangles[i].x1 >= eraser_rect.x1 && eraser_rect.x2 >= rectangles[i].x1)) {
-
-			if ((rectangles[i].y1 <= eraser_rect.y1 && eraser_rect.y1 <= rectangles[i].y2) ||
-				(rectangles[i].y1 >= eraser_rect.y1 && eraser_rect.y2 >= rectangles[i].y1)) {
-
-
+		if (rectangles[i].x1 <= input_pos[0] && input_pos[0] <= rectangles[i].x2) {
+			if (rectangles[i].y1 <= input_pos[1] && input_pos[1] <= rectangles[i].y2) {
 				return i;
+
 			}
 		}
 	}
-
-	return -1;
-
 }
+
+
