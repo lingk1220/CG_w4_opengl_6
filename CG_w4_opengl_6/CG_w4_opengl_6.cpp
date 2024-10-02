@@ -62,10 +62,17 @@ int rect_find_top(GLfloat* input_pos);
 void clamp_pos(GLfloat* input_pos);
 void draw_rect(int index);
 
+void rect_divide(int cmd);
+void rect_move_hv();
+void rect_move_di();
+void rect_move_oneside();
+void rect_move_octa();
+
 
 std::vector<struct rect> rectangles;
 struct rect divide_rect;
 int divide_rect_index = -1;
+int cmd = 1;
 
 void main(int argc, char** argv)
 {
@@ -75,7 +82,7 @@ void main(int argc, char** argv)
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(800, 600);
-	glutCreateWindow("CG_4w_opengl_5");
+	glutCreateWindow("CG_4w_opengl_6");
 
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK)
@@ -126,6 +133,8 @@ void Mouse(int button, int state, int x, int y)
 		divide_rect_index = rect_find_top(input_pos);
 		divide_rect = rectangles[divide_rect_index];
 		std::cout << divide_rect_index << std::endl;
+
+		rect_divide(cmd);
 		glutPostRedisplay();
 	}
 	else {
@@ -151,6 +160,18 @@ GLvoid Reshape(int w, int h)
 GLvoid Keyboard(unsigned char key, int x, int y)
 {
 	switch (key) {
+	case '1':
+		cmd = 1;
+		break;
+	case '2':
+		cmd = 2;
+		break;
+	case '3':
+		cmd = 3;
+		break;
+	case '4':
+		cmd = 4;
+		break;
 	case 'r':
 		init();
 		break;
@@ -180,3 +201,38 @@ int rect_find_top(GLfloat* input_pos) {
 }
 
 
+void rect_divide(int cmd) {
+	switch (cmd) {
+	case 1:
+		rect_move_hv();
+		break;
+
+	case 2:
+		rect_move_di();
+		break;
+
+	case 3:
+		rect_move_oneside();
+		break;
+
+	case 4:
+		rect_move_octa();
+		break;
+	}
+}
+
+void rect_move_hv() {
+
+}
+
+void rect_move_di() {
+
+}
+
+void rect_move_oneside() {
+
+}
+
+void rect_move_octa() {
+
+}
