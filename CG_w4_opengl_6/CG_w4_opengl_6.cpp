@@ -7,9 +7,13 @@
 #include <windows.h>
 
 #define RECTINITSIZE 0.05
-
+#define RECTMOVESPEED 0.01
 int rectcount = 0;
-int erasing = 0;
+
+GLfloat qx[4] = { 0.5f, 0.0f, 0.0f, 0.5f };
+GLfloat qy[4] = { 0.5f, 0.5f, 0.0f, 0.0f };
+GLfloat sx_hv[4] = { 0.0f, -1.0f, 0.0f, 1.0f };
+GLfloat sy_hv[4] = { 1.0f, 0.0f, -1.0f, 0.0f };
 
 struct rect {
 	GLfloat x1;
@@ -22,6 +26,8 @@ struct rect {
 	GLclampf b;
 	GLclampf a = 0;
 
+	GLfloat sx = 0;
+	GLfloat sy = 0;
 
 	rect() {
 
@@ -68,8 +74,10 @@ void rect_move_di();
 void rect_move_oneside();
 void rect_move_octa();
 
+void timer(int value);
 
 std::vector<struct rect> rectangles;
+std::vector<struct rect> rectangles_move;
 struct rect divide_rect;
 int divide_rect_index = -1;
 int cmd = 1;
@@ -90,7 +98,7 @@ void main(int argc, char** argv)
 		exit(EXIT_FAILURE);
 	}
 	else
-		glutDisplayFunc(drawScene);
+	glutDisplayFunc(drawScene);
 	glutReshapeFunc(Reshape);
 	glutKeyboardFunc(Keyboard);
 	glutMouseFunc(Mouse);
@@ -121,6 +129,14 @@ GLvoid drawScene()
 			draw_rect(i);
 		}
 	}
+
+	if (!rectangles_move.empty()) {
+		for (int i = 0; i < rectangles_move.size(); i++) {
+			glColor3f(rectangles_move[i].r, rectangles_move[i].g, rectangles_move[i].b);
+			glRectf(rectangles_move[i].x1, rectangles_move[i].y1, rectangles_move[i].x2, rectangles_move[i].y2);
+
+		}
+	}
 	glutSwapBuffers();
 }
 
@@ -130,15 +146,25 @@ void Mouse(int button, int state, int x, int y)
 	GLfloat input_pos[2] = { x, y };
 	clamp_pos(input_pos);
 	if (state == GLUT_DOWN) {
-		divide_rect_index = rect_find_top(input_pos);
-		divide_rect = rectangles[divide_rect_index];
-		std::cout << divide_rect_index << std::endl;
 
-		rect_divide(cmd);
+		divide_rect_index = rect_find_top(input_pos);
+		if (divide_rect_index != -1) {
+			std::cout << divide_rect_index << std::endl;
+
+			rect_divide(cmd);
+			if (divide_rect_index == rectcount) {
+				rectangles.pop_back();
+			}
+			else {
+				rectangles.erase(rectangles.begin() + divide_rect_index);
+			}
+			rectcount--;
+
+			glutTimerFunc(10, timer, 1);
+		}
 		glutPostRedisplay();
 	}
 	else {
-		erasing = 0;
 	}
 
 }
@@ -222,7 +248,24 @@ void rect_divide(int cmd) {
 }
 
 void rect_move_hv() {
+	GLfloat width = rectangles[divide_rect_index].x2 - rectangles[divide_rect_index].x1;
+	GLfloat height = rectangles[divide_rect_index].y2 - rectangles[divide_rect_index].y1;
+	for (int i = 0; i < 4; i++) {
+		struct rect rect_new;
+		rect_new.x1 = rectangles[divide_rect_index].x1 + width * qx[i];
+		rect_new.x2 = rect_new.x1 + width / 2;
 
+		rect_new.y1 = rectangles[divide_rect_index].y1 + width * qy[i];
+		rect_new.y2 = rect_new.y1 + width / 2;
+
+		rect_new.r = rectangles[divide_rect_index].r;
+		rect_new.g = rectangles[divide_rect_index].g;
+		rect_new.b = rectangles[divide_rect_index].b;
+
+		rect_new.sx = RECTMOVESPEED * sx_hv[i];
+		rect_new.sy = RECTMOVESPEED * sy_hv[i];
+		rectangles_move.push_back(rect_new);
+	}
 }
 
 void rect_move_di() {
@@ -235,4 +278,17 @@ void rect_move_oneside() {
 
 void rect_move_octa() {
 
+}
+
+void timer(int value) {
+	for (int i = 0; i < rectangles_move.size(); i++) {
+		std::cout << rectangles_move[i].sx << std::endl;
+		rectangles_move[i].x1 += rectangles_move[i].sx;
+		rectangles_move[i].x2 += rectangles_move[i].sx;
+		rectangles_move[i].y1 += rectangles_move[i].sy;
+		rectangles_move[i].y2 += rectangles_move[i].sy;
+	}
+
+	glutPostRedisplay();
+	glutTimerFunc(10, timer, 1);
 }
