@@ -7,7 +7,8 @@
 #include <windows.h>
 
 #define RECTINITSIZE 0.05
-#define RECTMOVESPEED 0.01
+#define RECTMOVESPEED 0.005
+#define RECTREDUCTION 0.001
 int rectcount = 0;
 
 GLfloat qx[4] = { 0.5f, 0.0f, 0.0f, 0.5f };
@@ -81,7 +82,7 @@ std::vector<struct rect> rectangles_move;
 struct rect divide_rect;
 int divide_rect_index = -1;
 int cmd = 1;
-
+int timer_toggle = 0;
 void main(int argc, char** argv)
 {
 	srand((unsigned int)time(NULL));
@@ -159,8 +160,10 @@ void Mouse(int button, int state, int x, int y)
 				rectangles.erase(rectangles.begin() + divide_rect_index);
 			}
 			rectcount--;
-
-			glutTimerFunc(10, timer, 1);
+			if (timer_toggle == 0) {
+				glutTimerFunc(10, timer, 1);
+				timer_toggle = 1;
+			}
 		}
 		glutPostRedisplay();
 	}
@@ -283,12 +286,26 @@ void rect_move_octa() {
 void timer(int value) {
 	for (int i = 0; i < rectangles_move.size(); i++) {
 		std::cout << rectangles_move[i].sx << std::endl;
-		rectangles_move[i].x1 += rectangles_move[i].sx;
-		rectangles_move[i].x2 += rectangles_move[i].sx;
-		rectangles_move[i].y1 += rectangles_move[i].sy;
-		rectangles_move[i].y2 += rectangles_move[i].sy;
+		rectangles_move[i].x1 += rectangles_move[i].sx + RECTREDUCTION;
+		rectangles_move[i].x2 += rectangles_move[i].sx - RECTREDUCTION;
+		rectangles_move[i].y1 += rectangles_move[i].sy + RECTREDUCTION;
+		rectangles_move[i].y2 += rectangles_move[i].sy - RECTREDUCTION;
+
+		if (rectangles_move[i].x2 - rectangles_move[i].x1 < 0.001) {
+			if (i == rectangles_move.size()) {
+				rectangles_move.pop_back();
+			}
+			else {
+				rectangles_move.erase(rectangles_move.begin() + i);
+			}
+		}
 	}
 
 	glutPostRedisplay();
-	glutTimerFunc(10, timer, 1);
+	if (!rectangles_move.empty()) {
+		glutTimerFunc(10, timer, 1);
+	}
+	else {
+		timer_toggle = 0;
+	}
 }
