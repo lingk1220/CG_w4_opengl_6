@@ -157,7 +157,6 @@ void Mouse(int button, int state, int x, int y)
 
 		divide_rect_index = rect_find_top(input_pos);
 		if (divide_rect_index != -1) {
-			std::cout << divide_rect_index << std::endl;
 
 			rect_divide(cmd);
 			if (divide_rect_index == rectcount) {
@@ -343,7 +342,6 @@ void rect_move_octa() {
 
 void timer(int value) {
 	for (int i = 0; i < rectangles_move.size(); i++) {
-		std::cout << rectangles_move[i].sx << std::endl;
 		rectangles_move[i].x1 += rectangles_move[i].sx + RECTREDUCTION;
 		rectangles_move[i].x2 += rectangles_move[i].sx - RECTREDUCTION;
 		rectangles_move[i].y1 += rectangles_move[i].sy + RECTREDUCTION;
