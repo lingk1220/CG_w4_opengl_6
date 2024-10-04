@@ -85,6 +85,7 @@ struct rect divide_rect;
 int divide_rect_index = -1;
 int cmd = 1;
 int timer_toggle = 0;
+
 void main(int argc, char** argv)
 {
 	srand((unsigned int)time(NULL));
@@ -112,9 +113,13 @@ void main(int argc, char** argv)
 
 void init() {
 	if (!rectangles.empty()) rectangles.clear();
+	if (!rectangles_move.empty()) rectangles_move.clear();
 	int maxrectcount = rand() % 5 + 1 + 5;
 
 	rectcount = 0;
+	divide_rect_index = -1;
+	cmd = 1;
+	timer_toggle = 0;
 
 	while (rectcount < maxrectcount) {
 		struct rect rect_new;
@@ -295,7 +300,26 @@ void rect_move_di() {
 }
 
 void rect_move_oneside() {
+	GLfloat width = rectangles[divide_rect_index].x2 - rectangles[divide_rect_index].x1;
+	GLfloat height = rectangles[divide_rect_index].y2 - rectangles[divide_rect_index].y1;
+	int dir = rand() % 4;
 
+	for (int i = 0; i < 4; i++) {
+		struct rect rect_new;
+		rect_new.x1 = rectangles[divide_rect_index].x1 + width * qx[i] + sx_di[i] * 0.005;
+		rect_new.x2 = rect_new.x1 + width / 2;
+
+		rect_new.y1 = rectangles[divide_rect_index].y1 + width * qy[i] + sy_di[i] * 0.005;
+		rect_new.y2 = rect_new.y1 + width / 2;
+
+		rect_new.r = rectangles[divide_rect_index].r;
+		rect_new.g = rectangles[divide_rect_index].g;
+		rect_new.b = rectangles[divide_rect_index].b;
+
+		rect_new.sx = RECTMOVESPEED * sx_di[dir];
+		rect_new.sy = RECTMOVESPEED * sy_di[dir];
+		rectangles_move.push_back(rect_new);
+	}
 }
 
 void rect_move_octa() {
