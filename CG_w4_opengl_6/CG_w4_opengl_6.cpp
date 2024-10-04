@@ -72,7 +72,7 @@ void clamp_pos(GLfloat* input_pos);
 void draw_rect(int index);
 
 void rect_divide(int cmd);
-void rect_move_hv();
+int rect_move_hv();
 void rect_move_di();
 void rect_move_oneside();
 void rect_move_octa();
@@ -257,7 +257,7 @@ void rect_divide(int cmd) {
 	}
 }
 
-void rect_move_hv() {
+int rect_move_hv() {
 	GLfloat width = rectangles[divide_rect_index].x2 - rectangles[divide_rect_index].x1;
 	GLfloat height = rectangles[divide_rect_index].y2 - rectangles[divide_rect_index].y1;
 	for (int i = 0; i < 4; i++) {
@@ -276,6 +276,7 @@ void rect_move_hv() {
 		rect_new.sy = RECTMOVESPEED * sy_hv[i];
 		rectangles_move.push_back(rect_new);
 	}
+	return rectangles_move.size() - 4;
 }
 
 void rect_move_di() {
@@ -324,6 +325,20 @@ void rect_move_oneside() {
 
 void rect_move_octa() {
 
+	rect_move_di();
+	int hv_index = rect_move_hv();
+	GLfloat width = rectangles_move[hv_index].x2 - rectangles_move[hv_index].x1;
+	GLfloat height = rectangles_move[hv_index].y2 - rectangles_move[hv_index].y1;
+	
+	GLfloat ox = rectangles_move[hv_index].x1;
+	GLfloat oy = rectangles_move[hv_index].y1;
+
+	for (int i = hv_index; i < hv_index + 4; i++) {
+		rectangles_move[i].x1 = ox - width / 2 + sx_hv[i - hv_index] * width / 2;
+		rectangles_move[i].x2 = ox + width / 2 + sx_hv[i - hv_index] * width / 2;
+		rectangles_move[i].y1 = oy - height / 2 + sy_hv[i - hv_index] * height / 2;
+		rectangles_move[i].y2 = oy + height / 2 + sy_hv[i - hv_index] * height / 2;
+	}
 }
 
 void timer(int value) {
