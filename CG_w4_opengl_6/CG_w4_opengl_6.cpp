@@ -15,6 +15,8 @@ GLfloat qx[4] = { 0.5f, 0.0f, 0.0f, 0.5f };
 GLfloat qy[4] = { 0.5f, 0.5f, 0.0f, 0.0f };
 GLfloat sx_hv[4] = { 0.0f, -1.0f, 0.0f, 1.0f };
 GLfloat sy_hv[4] = { 1.0f, 0.0f, -1.0f, 0.0f };
+GLfloat sx_di[4] = { 1.0f, -1.0f, -1.0f, 1.0f };
+GLfloat sy_di[4] = { 1.0f, 1.0f, -1.0f, -1.0f };
 
 struct rect {
 	GLfloat x1;
@@ -272,7 +274,24 @@ void rect_move_hv() {
 }
 
 void rect_move_di() {
+	GLfloat width = rectangles[divide_rect_index].x2 - rectangles[divide_rect_index].x1;
+	GLfloat height = rectangles[divide_rect_index].y2 - rectangles[divide_rect_index].y1;
+	for (int i = 0; i < 4; i++) {
+		struct rect rect_new;
+		rect_new.x1 = rectangles[divide_rect_index].x1 + width * qx[i];
+		rect_new.x2 = rect_new.x1 + width / 2;
 
+		rect_new.y1 = rectangles[divide_rect_index].y1 + width * qy[i];
+		rect_new.y2 = rect_new.y1 + width / 2;
+
+		rect_new.r = rectangles[divide_rect_index].r;
+		rect_new.g = rectangles[divide_rect_index].g;
+		rect_new.b = rectangles[divide_rect_index].b;
+
+		rect_new.sx = RECTMOVESPEED * sx_di[i];
+		rect_new.sy = RECTMOVESPEED * sy_di[i];
+		rectangles_move.push_back(rect_new);
+	}
 }
 
 void rect_move_oneside() {
